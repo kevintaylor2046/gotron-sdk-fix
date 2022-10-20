@@ -115,7 +115,7 @@ func GetPaddedParam(param []Param) ([]byte, error) {
 
 			if ty.T == eABI.SliceTy || ty.T == eABI.ArrayTy {
 				if ty.Elem.T == eABI.AddressTy {
-					tmp := v.([]string)
+					tmp := v.([]interface{})
 					v = make([]eCommon.Address, 0)
 					for i := range tmp {
 						addr, err := convetToAddress(tmp[i])
@@ -128,15 +128,16 @@ func GetPaddedParam(param []Param) ([]byte, error) {
 
 				if (ty.Elem.T == eABI.IntTy || ty.Elem.T == eABI.UintTy) &&
 					ty.Elem.Size > 64 &&
-					reflect.TypeOf(v).Elem().Kind() == reflect.String {
+					reflect.TypeOf(v).Elem().Kind() == reflect.Interface {
 					tmp := make([]*big.Int, 0)
-					for _, s := range v.([]string) {
+					for _, s := range v.([]interface{}) {
+						tmps := s.(string)
 						var value *big.Int
 						// check for hex char
-						if strings.HasPrefix(s, "0x") {
-							value, _ = new(big.Int).SetString(s[2:], 16)
+						if strings.HasPrefix(tmps, "0x") {
+							value, _ = new(big.Int).SetString(tmps[2:], 16)
 						} else {
-							value, _ = new(big.Int).SetString(s, 10)
+							value, _ = new(big.Int).SetString(tmps, 10)
 						}
 						tmp = append(tmp, value)
 					}
